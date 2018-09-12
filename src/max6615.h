@@ -3,7 +3,7 @@
   * @file       max6615.h
   * @author     Simon Burkhardt github.com/mnemocron
   * @copyright  MIT license
-  * @date       2018
+  * @date       2018.09.12
   * @brief      C library for the MAX6615 PWM Fan Controller for STM32 HAL.
   * @details
   * @see        github.com/eta-systems
@@ -18,15 +18,15 @@
 /**
   * @note  tested using STM32F373
   */
-#ifndef STM32F3XX_H
+#ifndef __STM32F3xx_HAL_H
 #include "stm32f3xx_hal.h"
 #endif
 
-#ifndef STM32F3XX_HAL_I2C_H
+#ifndef __STM32F3xx_HAL_I2C_H
 #include "stm32f3xx_hal_i2c.h"
 #endif
 
-#ifndef MAIN_H
+#ifndef __MAIN_H
 #include "main.h"
 #endif
 
@@ -73,13 +73,16 @@ typedef struct {
   I2C_HandleTypeDef *wireIface;
 } MAX6615;
 
-MAX6615 new_MAX6615               (void);
-uint8_t MAX6615_Write8            (MAX6615* chip, uint8_t reg, uint8_t val);
-uint8_t MAX6615_Read8             (MAX6615* chip, uint8_t reg, uint8_t* val);
-uint8_t MAX6615_Init              (MAX6615* chip, I2C_HandleTypeDef* wireIface, uint16_t devAddress);
-uint8_t MAX6615_ReadTemperature   (MAX6615* chip, uint8_t channel, float* temp);
-
-
+MAX6615 new_MAX6615                 (void);
+uint8_t MAX6615_Write8              (MAX6615* chip, uint8_t reg, uint8_t val);
+uint8_t MAX6615_Read8               (MAX6615* chip, uint8_t reg, uint8_t* val);
+uint8_t MAX6615_Init                (MAX6615* chip, I2C_HandleTypeDef* wireIface, uint16_t devAddress);
+uint8_t MAX6615_ReadTemperature     (MAX6615* chip, uint8_t channel, float* temp);
+uint8_t MAX6615_ReadTacho           (MAX6615* chip, uint8_t channel, uint8_t* tacho);
+uint8_t MAX6615_PWM_EnableManual    (MAX6615* chip, uint8_t channel);
+uint8_t MAX6615_PWM_EnableAutomatic (MAX6615* chip, uint8_t channel, uint8_t fanStartDC, uint8_t fanStartTemp);
+uint8_t MAX6615_PWM_SetPWM          (MAX6615* chip, uint8_t channel, uint8_t percent);
+uint8_t MAX6615_SetTempOffset       (MAX6615* chip, uint8_t channel, int8_t degrees);
 
 
 #endif /* __MAX_6615_H */
