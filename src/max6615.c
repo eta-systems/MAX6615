@@ -3,7 +3,7 @@
   * @file       max6615.c
   * @author     Simon Burkhardt github.com/mnemocron
   * @copyright  MIT license
-  * @date       2018.09.12
+  * @date       2018.09.13
   * @brief      C library for the MAX6615 PWM Fan Controller for STM32 HAL.
   * @details
   * @see        github.com/eta-systems
@@ -18,8 +18,6 @@
   * @param    *chip, pointer to the MAX6615 typedef struct
   * @param    *wireIface a pointer to a HAL I2C_HandleTypeDef
   * @param    address of the chip on the I2C bus
-  * @return   0 on success, 1 on I2C transmission error
-  * @pre      all Inputs & Outputs must be declared before calling begin()
   */
 uint8_t MAX6615_Init(MAX6615 *chip, I2C_HandleTypeDef *wireIface, uint16_t address){
   chip->wireIface = wireIface;
@@ -52,6 +50,12 @@ uint8_t MAX6615_Read8(MAX6615 *chip, uint8_t reg, uint8_t *val){
   return 0;
 }
 
+/**
+  * @brief    reads the temperature value from the specified channel
+  * @param    *chip, pointer to the MAX6615 typedef struct
+  * @param    channel, 1 or 2
+  * @param    *temp, pointer to where the return value should be stored
+  */
 uint8_t MAX6615_ReadTemperature(MAX6615* chip, uint8_t channel, float* temp){
   uint8_t msb = 0, lsb = 0;
   if(channel == 1){
@@ -67,7 +71,13 @@ uint8_t MAX6615_ReadTemperature(MAX6615* chip, uint8_t channel, float* temp){
   return 0;
 }
 
-// untested
+/**
+  * @BUG      this function is untested
+  * @brief    reads the tacho value from the specified channel
+  * @param    *chip, pointer to the MAX6615 typedef struct
+  * @param    channel, 1 or 2
+  * @param    *tacho, pointer to where the return value should be stored
+  */
 uint8_t MAX6615_ReadTacho(MAX6615* chip, uint8_t channel, uint8_t* tacho){
   if(channel == 1){
     MAX6615_Read8(chip, MAX6615_TACH_1_VAL, tacho);
@@ -79,6 +89,11 @@ uint8_t MAX6615_ReadTacho(MAX6615* chip, uint8_t channel, uint8_t* tacho){
   return 0;
 }
 
+/**
+  * @brief    enables manual PWM controll on the chip
+  * @param    *chip, pointer to the MAX6615 typedef struct
+  * @param    channel, 1 or 2
+  */
 uint8_t MAX6615_PWM_EnableManual(MAX6615* chip, uint8_t channel){
   uint8_t regval = 0;
   if(channel == 1){
@@ -99,13 +114,22 @@ uint8_t MAX6615_PWM_EnableManual(MAX6615* chip, uint8_t channel){
   return 0;
 }
 
+/**
+  * @brief    enables automatic PWM control via the temperature sensors
+  * @details  the temperature control is set to act quickly, you can change the 
+  *           rate of change setting in the library to adjust this time.
+  * @param    *chip, pointer to the MAX6615 typedef struct
+  * @param    channel, 1 or 2
+  * @param    fanStartDC, the initial speed [%] when turning on the fan
+  * @param    fanStartTemp, the initial temperature [°C] when the fan should start spinning
+  */
 uint8_t MAX6615_PWM_EnableAutomatic(MAX6615* chip, uint8_t channel, uint8_t fanStartDC, uint8_t fanStartTemp){
   uint8_t regval = 0;
   uint8_t pwm = (uint8_t) ((float)fanStartDC * 2.4f);
   if(channel == 1){
     MAX6615_Write8(chip, MAX6615_PWM_1_START_DC, pwm);
     MAX6615_Write8(chip, MAX6615_CH_1_FAN_START_TEMP, fanStartTemp);
-    MAX6615_Write8(chip, MAX6615_PWM_1_MAX_DC, 240);
+    MAX6615_Write8(chip, MAX6615_PWM_1_MAX_DC, 240);    // maxiumum duty cycle = 100%
     MAX6615_Write8(chip, MAX6615_CH_1_FAN_START_TEMP, fanStartTemp);
     MAX6615_Read8(chip, MAX6615_FAN_CONF, &regval);
     regval |= (1 << 5);
@@ -113,7 +137,7 @@ uint8_t MAX6615_PWM_EnableAutomatic(MAX6615* chip, uint8_t channel, uint8_t fanS
   } else if(channel == 2){
     MAX6615_Write8(chip, MAX6615_PWM_2_START_DC, pwm);
     MAX6615_Write8(chip, MAX6615_CH_2_FAN_START_TEMP, fanStartTemp);
-    MAX6615_Write8(chip, MAX6615_PWM_2_MAX_DC, 240);
+    MAX6615_Write8(chip, MAX6615_PWM_2_MAX_DC, 240);    // maxiumum duty cycle = 100%
     MAX6615_Write8(chip, MAX6615_CH_2_FAN_START_TEMP, fanStartTemp);
     MAX6615_Read8(chip, MAX6615_FAN_CONF, &regval);
     regval |= (1 << 2);
@@ -127,7 +151,8 @@ uint8_t MAX6615_PWM_EnableAutomatic(MAX6615* chip, uint8_t channel, uint8_t fanS
   regval = (1 << 6) | (1 << 3);
   MAX6615_Write8(chip, MAX6615_DUTY_CYCLE_RATE_CHANGE, regval);
 
-  // add: bool disableWhenCold to the function parameters to specify the minimum fan duty cycle
+  // add: bool disableWhenCold to the function parameters 
+  // to specify the minimum fan duty cycle to either be 0 or fanStartDC
   /*
   MAX6615_Read8(chip, MAX6615_CONF_BYTE, &regval);
   if(disableWhenCold)
@@ -139,6 +164,12 @@ uint8_t MAX6615_PWM_EnableAutomatic(MAX6615* chip, uint8_t channel, uint8_t fanS
   return 0;
 }
 
+/**
+  * @brief    sets the PWM manually in manual mode
+  * @param    *chip, pointer to the MAX6615 typedef struct
+  * @param    channel, 1 or 2
+  * @param    percent, the PWM value [0 - 100]
+  */
 uint8_t MAX6615_PWM_SetPWM(MAX6615* chip, uint8_t channel, uint8_t percent){
   uint8_t pwm = (uint8_t) ((float)percent * 2.4f);
   if(channel == 1){
@@ -151,6 +182,13 @@ uint8_t MAX6615_PWM_SetPWM(MAX6615* chip, uint8_t channel, uint8_t percent){
 	return 0;
 }
 
+/**
+  * @brief    sets the temperature correction offset of a channel
+  * @details  the step size / accuracy (LSB) is 2°C
+  * @param    *chip, pointer to the MAX6615 typedef struct
+  * @param    channel, 1 or 2
+  * @param    degrees, temperature offset from -14°C to +14°C
+  */
 uint8_t MAX6615_SetTempOffset(MAX6615* chip, uint8_t channel, int8_t degrees){
   if(channel > 2)
     return 1;

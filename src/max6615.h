@@ -3,13 +3,12 @@
   * @file       max6615.h
   * @author     Simon Burkhardt github.com/mnemocron
   * @copyright  MIT license
-  * @date       2018.09.12
+  * @date       2018.09.13
   * @brief      C library for the MAX6615 PWM Fan Controller for STM32 HAL.
   * @details
   * @see        github.com/eta-systems
   * @see        https://datasheets.maximintegrated.com/en/ds/MAX6615-MAX6616.pdf
   */
-
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __MAX_6615_H
@@ -83,7 +82,6 @@ uint8_t MAX6615_PWM_EnableManual    (MAX6615* chip, uint8_t channel);
 uint8_t MAX6615_PWM_EnableAutomatic (MAX6615* chip, uint8_t channel, uint8_t fanStartDC, uint8_t fanStartTemp);
 uint8_t MAX6615_PWM_SetPWM          (MAX6615* chip, uint8_t channel, uint8_t percent);
 uint8_t MAX6615_SetTempOffset       (MAX6615* chip, uint8_t channel, int8_t degrees);
-
 
 #endif /* __MAX_6615_H */
 /************************ (C) COPYRIGHT ETA Systems *****END OF FILE****/
